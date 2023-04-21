@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream> 
 #include <string>
 
 constexpr int POS_HEAD_FILE = 1;
@@ -18,7 +19,7 @@ struct DiskGeometry {
     char buf[BUF_SIZE_DISK_GEO];
     in.seekg(static_cast<int>(in.tellg()) + 48);
     in.read(buf, sizeof(buf));
-    cylinder = buf[0] << 8 | buf[1];  // Compose data in Big Endian.
+    cylinder = static_cast<unsigned char>(buf[0]) << 8 | static_cast<unsigned char>(buf[1]);  // Compose data in Big Endian.
     heads = buf[2];
     sectorPerTrack = buf[3];
   }
@@ -42,10 +43,13 @@ int main(int argc, char* argv[]) {
     if (std::string(buffer) == "conectix") {
       // Read the "Disk Geometry" field (4 bytes in total).
       DiskGeometry diskGeometry(in);
-      std::cout << "Cylinder: " << diskGeometry.cylinder << std::endl;
-      std::cout << "Heads: " << diskGeometry.heads << std::endl;
-      std::cout << "Sector length (bytes): 512" << std::endl;  // Fixed.
-      std::cout << "Sectors per track/cylinder: " << diskGeometry.sectorPerTrack << std::endl;
+      std::stringstream ss;
+      ss << "[Disk Geometry]\n"
+        << "\nCylinder: " << diskGeometry.cylinder \
+        << "\nHeads: " << diskGeometry.heads \
+        << "\nSector length (bytes): 512" \
+        << "\nSectors per track/cylinder: " << diskGeometry.sectorPerTrack;
+      std::cout << ss.str() << std::endl;
     }
     in.close();
   }
